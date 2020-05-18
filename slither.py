@@ -24,9 +24,13 @@ class Player(pygame.sprite.Sprite):
         self.surf = pygame.image.load("sprite2.png").convert()
         self.surf.set_colorkey((255,255,255),RLEACCEL)
         self.rect = self.surf.get_rect()
+        self.alive = 1
 
     def rotate(self, dir):
-        self.surf = pygame.image.load("sprite2.png").convert()
+        if self.alive:
+            self.surf = pygame.image.load("sprite2.png").convert()
+        else:
+            self.surf = pygame.image.load("ded.png").convert()
         angle = 0
         if dir == 'down':
             angle=270
@@ -35,6 +39,8 @@ class Player(pygame.sprite.Sprite):
         elif dir == 'up':
             angle = 90
         self.surf = pygame.transform.rotate(self.surf,angle)
+
+
 
 class Appel(pygame.sprite.Sprite):
     def __init__(self):
@@ -85,6 +91,8 @@ def message_display(text):
     TextSurf, TextRect = text_objects(text, largeText)
     TextRect.center = ((SCREEN_WIDTH/2),(yMargin+boxSize+yMargin/2))
     screen.blit(TextSurf, TextRect)
+
+
 
 while running:
     for event in pygame.event.get():
@@ -146,6 +154,23 @@ while running:
 
     for x in q:
         pygame.draw.rect(screen,(139,232,163),(int(x[0]*(boxSize*1.0/gridsize)+xMargin),int(x[1]*(boxSize*1.0/gridsize)+yMargin),25,25))
+        if x[0]==gridX and x[1]==gridY and q.index(x)<len(q)-1:
+            player.alive = False
+            player.rotate(dir)
+
+
+    if dir == 'up' and player.alive:
+        headX = gridX*(boxSize*1.0/gridsize)+xMargin
+        headY = headY - baseSpeed
+    elif dir == 'down' and player.alive:
+        headX = gridX*(boxSize*1.0/gridsize)+xMargin
+        headY = headY + baseSpeed
+    elif dir == 'left' and player.alive:
+        headY = gridY*(boxSize*1.0/gridsize)+yMargin
+        headX = headX - baseSpeed
+    elif dir == 'right' and player.alive:
+        headY = gridY*(boxSize*1.0/gridsize)+yMargin
+        headX = headX + baseSpeed
 
     if headX<xMargin:
         headX = xMargin
@@ -156,23 +181,12 @@ while running:
     if headY >=SCREEN_HEIGHT-yMargin-size:
         headY = SCREEN_HEIGHT-yMargin-size
 
-    if dir == 'up':
-        headX = gridX*(boxSize*1.0/gridsize)+xMargin
-        headY = headY - baseSpeed
-    elif dir == 'down':
-        headX = gridX*(boxSize*1.0/gridsize)+xMargin
-        headY = headY + baseSpeed
-    elif dir == 'left':
-        headY = gridY*(boxSize*1.0/gridsize)+yMargin
-        headX = headX - baseSpeed
-    elif dir == 'right':
-        headY = gridY*(boxSize*1.0/gridsize)+yMargin
-        headX = headX + baseSpeed
-
-
     screen.blit(player.surf,(int(headX),int(headY)))
 
-    message_display("Length: "+ str(player.length))
+    if player.alive:
+        message_display("Length: "+ str(player.length))
+    else:
+        message_display("you died! Final Length: "+str(player.length))
 
 
     player.rotate(dir)
